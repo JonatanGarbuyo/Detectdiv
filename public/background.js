@@ -2,42 +2,69 @@
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	// Only process when the tab is loading and has a URL
 	if (changeInfo.status === "loading" && tab.url) {
-		// Check if this tab has a deployment number stored
-		chrome.storage.local.get([`deployment_${tabId}`], (result) => {
-			const deployment = result[`deployment_${tabId}`];
+		try {
+			const url = new URL(tab.url);
 			
-			if (deployment && deployment.trim() !== "") {
-				try {
-					const url = new URL(tab.url);
-					
-					// Skip chrome://, chrome-extension://, etc.
-					if (!url.protocol.startsWith("http")) {
-						return;
-					}
-					
-					// Check if URL already has the correct 'd' parameter
-					const existingD = url.searchParams.get("d");
-					if (existingD === deployment) {
-						return; // Already has the correct parameter
-					}
-					
-					// Update the URL with the deployment parameter
-					url.searchParams.set("d", deployment);
-					
-					// Navigate to the updated URL
-					chrome.tabs.update(tabId, { url: url.toString() });
-				} catch (error) {
-					console.error("Error updating URL with deployment:", error);
-				}
+			// Skip chrome://, chrome-extension://, etc.
+			if (!url.protocol.startsWith("http")) {
+				return;
 			}
-		});
+			
+			// Get both deployment and outputType in a single call
+			chrome.storage.local.get([`deployment_${tabId}`, `outputType_${tabId}`], (result) => {
+				let urlUpdated = false;
+				
+				const deployment = result[`deployment_${tabId}`];
+				const existingD = url.searchParams.get("d");
+				
+				if (deployment && deployment.trim() !== "") {
+					// Check if URL already has the correct 'd' parameter
+					if (existingD !== deployment) {
+						// Update the URL with the deployment parameter
+						url.searchParams.set("d", deployment);
+						urlUpdated = true;
+					}
+				} else {
+					// Remove 'd' parameter if it exists and no deployment is set
+					if (existingD !== null) {
+						url.searchParams.delete("d");
+						urlUpdated = true;
+					}
+				}
+				
+				const outputType = result[`outputType_${tabId}`];
+				const existingOutputType = url.searchParams.get("outputType");
+				
+				if (outputType && outputType.trim() !== "") {
+					// Check if URL already has the correct 'outputType' parameter
+					if (existingOutputType !== outputType) {
+						// Update the URL with the outputType parameter
+						url.searchParams.set("outputType", outputType);
+						urlUpdated = true;
+					}
+				} else {
+					// Remove 'outputType' parameter if it exists and no outputType is set
+					if (existingOutputType !== null) {
+						url.searchParams.delete("outputType");
+						urlUpdated = true;
+					}
+				}
+				
+				// Navigate to the updated URL if any parameter was changed
+				if (urlUpdated) {
+					chrome.tabs.update(tabId, { url: url.toString() });
+				}
+			});
+		} catch (error) {
+			console.error("Error updating URL with parameters:", error);
+		}
 	}
 });
 
-// Clean up deployment number when tab is closed
+// Clean up deployment number and outputType when tab is closed
 chrome.tabs.onRemoved.addListener((tabId) => {
-	chrome.storage.local.remove([`deployment_${tabId}`], () => {
-		console.log(`Cleaned up deployment for tab ${tabId}`);
+	chrome.storage.local.remove([`deployment_${tabId}`, `outputType_${tabId}`], () => {
+		console.log(`Cleaned up parameters for tab ${tabId}`);
 	});
 });
 
@@ -64,6 +91,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		const tabId = request.tabId;
 		chrome.storage.local.get([`deployment_${tabId}`], (result) => {
 			sendResponse({ deployment: result[`deployment_${tabId}`] || "" });
+		});
+		return true;
+	}
+	
+	if (request.action === "saveOutputType") {
+		const tabId = request.tabId;
+		const outputType = request.outputType;
+		
+		if (outputType && outputType.trim() !== "") {
+			chrome.storage.local.set({ [`outputType_${tabId}`]: outputType }, () => {
+				sendResponse({ success: true });
+			});
+		} else {
+			// Clear outputType if empty
+			chrome.storage.local.remove([`outputType_${tabId}`], () => {
+				sendResponse({ success: true });
+			});
+		}
+		return true;
+	}
+	
+	if (request.action === "getOutputType") {
+		const tabId = request.tabId;
+		chrome.storage.local.get([`outputType_${tabId}`], (result) => {
+			sendResponse({ outputType: result[`outputType_${tabId}`] || "" });
 		});
 		return true;
 	}
