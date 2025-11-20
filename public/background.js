@@ -151,4 +151,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		});
 		return true;
 	}
+
+	if (request.action === "log") {
+		console.log("[DevTools Log]:", request.message);
+		return true;
+	}
 });
