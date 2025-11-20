@@ -18,6 +18,11 @@ function App() {
 		addOutputType,
 		deleteOutputType,
 		clearAll,
+		mxIds,
+		selectedMxId,
+		handleMxIdChange,
+		addMxId,
+		deleteMxId,
 	} = useExtensionData();
 
 	return (
@@ -32,9 +37,12 @@ function App() {
 					outputTypes={outputTypes}
 					selectedOutputType={selectedOutputType}
 					token={token}
+					mxIds={mxIds}
+					selectedMxId={selectedMxId}
 					onDeploymentChange={handleDeploymentChange}
 					onOutputTypeChange={handleOutputTypeChange}
 					onToggleToken={toggleToken}
+					onMxIdChange={handleMxIdChange}
 					onClear={clearAll}
 				/>
 			)}
@@ -44,6 +52,9 @@ function App() {
 					outputTypes={outputTypes}
 					onAddOutputType={addOutputType}
 					onDeleteOutputType={deleteOutputType}
+					mxIds={mxIds}
+					onAddMxId={addMxId}
+					onDeleteMxId={deleteMxId}
 				/>
 			)}
 		</>

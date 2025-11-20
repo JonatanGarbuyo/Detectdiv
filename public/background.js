@@ -11,8 +11,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 				return;
 			}
 			
-			// Get deployment, outputType, and token in a single call
-			chrome.storage.local.get([`deployment_${tabId}`, `outputType_${tabId}`, `token_${tabId}`], (result) => {
+			// Get deployment, outputType, token, and mxId in a single call
+			chrome.storage.local.get([`deployment_${tabId}`, `outputType_${tabId}`, `token_${tabId}`, `mxId_${tabId}`], (result) => {
 				let urlUpdated = false;
 				
 				const deployment = result[`deployment_${tabId}`];
@@ -59,6 +59,21 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 						urlUpdated = true;
 					}
 				}
+
+				const mxId = result[`mxId_${tabId}`];
+				const existingMxId = url.searchParams.get("mxId");
+
+				if (mxId && mxId.trim() !== "") {
+					if (existingMxId !== mxId) {
+						url.searchParams.set("mxId", mxId);
+						urlUpdated = true;
+					}
+				} else {
+					if (existingMxId !== null) {
+						url.searchParams.delete("mxId");
+						urlUpdated = true;
+					}
+				}
 				
 				// Navigate to the updated URL if any parameter was changed
 				if (urlUpdated) {
@@ -71,9 +86,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	}
 });
 
-// Clean up deployment number, outputType, and token when tab is closed
+// Clean up deployment number, outputType, token, and mxId when tab is closed
 chrome.tabs.onRemoved.addListener((tabId) => {
-	chrome.storage.local.remove([`deployment_${tabId}`, `outputType_${tabId}`, `token_${tabId}`], () => {
+	chrome.storage.local.remove([`deployment_${tabId}`, `outputType_${tabId}`, `token_${tabId}`, `mxId_${tabId}`], () => {
 		console.log(`Cleaned up parameters for tab ${tabId}`);
 	});
 });
@@ -148,6 +163,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		const tabId = request.tabId;
 		chrome.storage.local.get([`token_${tabId}`], (result) => {
 			sendResponse({ token: result[`token_${tabId}`] || "" });
+		});
+		return true;
+	}
+
+	if (request.action === "saveMxId") {
+		const tabId = request.tabId;
+		const mxId = request.mxId;
+		
+		if (mxId && mxId.trim() !== "") {
+			chrome.storage.local.set({ [`mxId_${tabId}`]: mxId }, () => {
+				sendResponse({ success: true });
+			});
+		} else {
+			chrome.storage.local.remove([`mxId_${tabId}`], () => {
+				sendResponse({ success: true });
+			});
+		}
+		return true;
+	}
+	
+	if (request.action === "getMxId") {
+		const tabId = request.tabId;
+		chrome.storage.local.get([`mxId_${tabId}`], (result) => {
+			sendResponse({ mxId: result[`mxId_${tabId}`] || "" });
 		});
 		return true;
 	}

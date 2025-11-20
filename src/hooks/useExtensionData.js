@@ -13,6 +13,8 @@ export const useExtensionData = () => {
   const [currentTabId, setCurrentTabId] = useState(null);
   const [outputTypes, setOutputTypes] = useState(["amp-type"]);
   const [selectedOutputType, setSelectedOutputType] = useState("");
+  const [mxIds, setMxIds] = useState([]);
+  const [selectedMxId, setSelectedMxId] = useState("");
 
   const [token, setToken] = useState("");
 
@@ -62,6 +64,21 @@ export const useExtensionData = () => {
 
       if (response?.success) {
         updateUrlParam(tabId, "outputType", outputType);
+      }
+    },
+    [updateUrlParam]
+  );
+
+  const saveMxId = useCallback(
+    async (tabId, mxId) => {
+      const response = await sendMessage({
+        action: "saveMxId",
+        tabId: tabId,
+        mxId: mxId,
+      });
+
+      if (response?.success) {
+        updateUrlParam(tabId, "mxId", mxId);
       }
     },
     [updateUrlParam]
@@ -170,11 +187,42 @@ export const useExtensionData = () => {
             console.error("Error parsing URL:", error);
           }
         }
+
+        // Load saved mxIds
+        const mxIdsResult = await getStorageLocal(["mxIds"]);
+        if (
+          mxIdsResult.mxIds &&
+          Array.isArray(mxIdsResult.mxIds) &&
+          mxIdsResult.mxIds.length > 0
+        ) {
+          setMxIds(mxIdsResult.mxIds);
+        }
+
+        // Load saved mxId for this tab
+        const mxIdResponse = await sendMessage({
+          action: "getMxId",
+          tabId: tabId,
+        });
+
+        if (mxIdResponse?.mxId) {
+          setSelectedMxId(mxIdResponse.mxId);
+        } else if (tab.url) {
+          try {
+            const url = new URL(tab.url);
+            const existingMxId = url.searchParams.get("mxId");
+            if (existingMxId) {
+              setSelectedMxId(existingMxId);
+              saveMxId(tabId, existingMxId);
+            }
+          } catch (error) {
+            console.error("Error parsing URL:", error);
+          }
+        }
       }
     };
 
     init();
-  }, [saveDeployment, saveOutputType, saveToken]);
+  }, [saveDeployment, saveOutputType, saveToken, saveMxId]);
 
   const handleDeploymentChange = (value) => {
     setDeploymentNumber(value);
@@ -187,6 +235,13 @@ export const useExtensionData = () => {
     setSelectedOutputType(value);
     if (currentTabId !== null) {
       saveOutputType(currentTabId, value);
+    }
+  };
+
+  const handleMxIdChange = (value) => {
+    setSelectedMxId(value);
+    if (currentTabId !== null) {
+      saveMxId(currentTabId, value);
     }
   };
 
@@ -233,6 +288,26 @@ export const useExtensionData = () => {
     setStorageLocal({ outputTypes: updatedTypes });
   };
 
+  const addMxId = (newMxId) => {
+    if (newMxId && newMxId.id && !mxIds.some((item) => item.id === newMxId.id)) {
+      const updatedMxIds = [...mxIds, newMxId];
+      setMxIds(updatedMxIds);
+      setStorageLocal({ mxIds: updatedMxIds });
+    }
+  };
+
+  const deleteMxId = (idToDelete) => {
+    const updatedMxIds = mxIds.filter((item) => item.id !== idToDelete);
+    setMxIds(updatedMxIds);
+
+    if (selectedMxId === idToDelete && currentTabId !== null) {
+      setSelectedMxId("");
+      saveMxId(currentTabId, "");
+    }
+
+    setStorageLocal({ mxIds: updatedMxIds });
+  };
+
   const clearAll = async () => {
     setDeploymentNumber("");
     setSelectedOutputType("");
@@ -253,6 +328,13 @@ export const useExtensionData = () => {
         tabId: currentTabId,
         token: "",
       });
+      await sendMessage({
+        action: "saveMxId",
+        tabId: currentTabId,
+        mxId: "",
+      });
+      
+      setSelectedMxId("");
       
       const tab = await getTab(currentTabId);
       if (tab?.url) {
@@ -263,6 +345,7 @@ export const useExtensionData = () => {
             url.searchParams.delete("d");
             url.searchParams.delete("outputType");
             url.searchParams.delete("token");
+            url.searchParams.delete("mxId");
             
             await updateTab(currentTabId, { url: url.toString() });
         } catch (error) {
@@ -283,5 +366,10 @@ export const useExtensionData = () => {
     addOutputType,
     deleteOutputType,
     clearAll,
+    mxIds,
+    selectedMxId,
+    handleMxIdChange,
+    addMxId,
+    deleteMxId,
   };
 };

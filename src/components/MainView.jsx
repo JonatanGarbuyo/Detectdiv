@@ -5,9 +5,12 @@ const MainView = ({
 	outputTypes,
 	selectedOutputType,
 	token,
+	mxIds,
+	selectedMxId,
 	onDeploymentChange,
 	onOutputTypeChange,
 	onToggleToken,
+	onMxIdChange,
 	onClear,
 }) => {
 	return (
@@ -38,6 +41,24 @@ const MainView = ({
 							{type}
 						</option>
 					))}
+				</select>
+			</label>
+
+			<label className="" htmlFor="mxId">
+				Microexperience
+				<select
+					name="mxId"
+					id="mxId"
+					value={selectedMxId}
+					onChange={(e) => onMxIdChange(e.target.value)}
+				>
+					<option value=""> - </option>
+					{mxIds &&
+						mxIds.map((item) => (
+							<option key={item.id} value={item.id}>
+								{item.name ? `${item.name} (${item.id})` : item.id}
+							</option>
+						))}
 				</select>
 			</label>
 
