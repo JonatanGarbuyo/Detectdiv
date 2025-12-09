@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import ReactJson from "react-json-view";
+import JsonView from "@uiw/react-json-view";
 
 const GlobalContentTab = () => {
 	const [globalContent, setGlobalContent] = useState(null);
@@ -104,12 +104,10 @@ const GlobalContentTab = () => {
 
 			{globalContent && (
 				<div style={{ overflow: "auto" }}>
-					<ReactJson
-						src={globalContent}
-						theme="rjv-default"
+					<JsonView
+						value={globalContent}
 						collapsed={collapsed}
 						displayDataTypes={false}
-						name={false}
 						enableClipboard={true}
 					/>
 				</div>
