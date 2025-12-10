@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 const useFusionData = () => {
 	const [data, setData] = useState({
 		globalContent: null,
+		environment: null,
 		mxId: null,
 		deployment: null,
 		arcSite: null,
@@ -18,6 +19,7 @@ const useFusionData = () => {
 			setError(null);
 			setData({
 				globalContent: null,
+				environment: null,
 				mxId: null,
 				deployment: null,
 				arcSite: null,
@@ -32,6 +34,7 @@ const useFusionData = () => {
 
 				return JSON.stringify({
 					globalContent: fusion.globalContent,
+					environment: fusion.environment,
 					mxId: fusion.mxId,
 					deployment: fusion.deployment,
 					arcSite: fusion.arcSite,

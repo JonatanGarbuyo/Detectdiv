@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import GlobalContentTab from "./components/GlobalContentTab";
+import EnvironmentTab from "./components/EnvironmentTab";
 import useFusionData from "../hooks/useFusionData";
 
 const DevToolsApp = () => {
@@ -32,12 +33,27 @@ const DevToolsApp = () => {
 				>
 					Global Content
 				</button>
+				<button
+					className={`tab-button ${activeTab === "environment" ? "active" : ""}`}
+					onClick={() => setActiveTab("environment")}
+					type="button"
+				>
+					Environment
+				</button>
 			</div>
 
 			<div className="tab-content">
 				{activeTab === "global-content" && (
 					<GlobalContentTab
 						globalContent={data.globalContent}
+						loading={loading}
+						error={error}
+						refresh={refresh}
+					/>
+				)}
+				{activeTab === "environment" && (
+					<EnvironmentTab
+						environment={data.environment}
 						loading={loading}
 						error={error}
 						refresh={refresh}
