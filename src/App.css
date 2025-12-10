@@ -45,6 +45,15 @@ body {
 	margin-top: var(--pico-spacing);
 }
 
+.fusion-info-header {
+	margin-bottom: var(--pico-spacing);
+	padding: var(--pico-spacing);
+	background-color: var(--pico-card-background-color);
+	border-radius: var(--pico-border-radius);
+	font-size: 0.85em;
+	box-shadow: var(--pico-card-box-shadow);
+}
+
 label.token-switch {
 	grid-template-columns: 1fr auto;
 	width: 100%;

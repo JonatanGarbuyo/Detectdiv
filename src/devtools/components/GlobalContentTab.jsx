@@ -1,64 +1,8 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import JsonView from "@uiw/react-json-view";
 
-const GlobalContentTab = () => {
-	const [globalContent, setGlobalContent] = useState(null);
-	const [error, setError] = useState(null);
-	const [loading, setLoading] = useState(false);
-
+const GlobalContentTab = ({ globalContent, loading, error, refresh }) => {
 	const [collapsed, setCollapsed] = useState(2);
-
-	const fetchGlobalContent = useCallback(() => {
-		setLoading(true);
-		setError(null);
-		setGlobalContent(null);
-
-		const getGlobalContent = () => {
-			try {
-				// User reported Fusion might be an object, not a function.
-				// Trying direct property access.
-				return JSON.stringify(window.Fusion?.globalContent || window.Fusion?.()?.globalContent);
-			} catch {
-				return null;
-			}
-		};
-
-		const tabId = chrome.devtools.inspectedWindow.tabId;
-
-		chrome.scripting.executeScript(
-			{
-				target: { tabId: tabId },
-				func: getGlobalContent,
-				world: "MAIN",
-			},
-			(results) => {
-				setLoading(false);
-
-				if (chrome.runtime.lastError) {
-					setError(chrome.runtime.lastError.message);
-					return;
-				}
-
-				if (!results || !results[0]) {
-					setError("No results returned from script execution");
-					return;
-				}
-
-				const result = results[0].result;
-				if (result) {
-					try {
-						const parsedContent = JSON.parse(result);
-						setGlobalContent(parsedContent);
-						setError(null);
-					} catch {
-						setError("Error parsing global content JSON");
-					}
-				} else {
-					setGlobalContent(null);
-				}
-			}
-		);
-	}, []);
 
 	return (
 		<article>
@@ -70,12 +14,7 @@ const GlobalContentTab = () => {
 			</header>
 
 			<section className="container">
-				<button
-					onClick={fetchGlobalContent}
-					disabled={loading}
-					data-tooltip="Refresh"
-					className="outline"
-				>
+				<button onClick={refresh} disabled={loading} data-tooltip="Refresh" className="outline">
 					{loading ? "⏳" : "🔄"}
 				</button>
 				<button
