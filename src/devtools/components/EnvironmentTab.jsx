@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import JsonView from "@uiw/react-json-view";
 
 const EnvironmentTab = ({ environment, loading, error, refresh }) => {
-	const [collapsed, setCollapsed] = useState(2);
+	const [collapsed, setCollapsed] = useState(null); // null (initial) | false (expand all) | true (collapse all)
 
 	return (
 		<article>
@@ -44,11 +44,16 @@ const EnvironmentTab = ({ environment, loading, error, refresh }) => {
 			{environment && (
 				<div style={{ overflow: "auto" }}>
 					<JsonView
-						value={environment}
-						collapsed={collapsed}
+						collapsed={collapsed === true}
 						displayDataTypes={false}
 						enableClipboard={true}
 						style={{ backgroundColor: "transparent" }}
+						shouldExpandNodeInitially={(isExpanded, { level }) => {
+							if (collapsed === false) return true;
+							if (collapsed === true) return false;
+							return level <= 1;
+						}}
+						value={environment}
 					/>
 				</div>
 			)}
