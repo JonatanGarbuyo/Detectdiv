@@ -8,6 +8,8 @@ const useFusionData = () => {
 		deployment: null,
 		arcSite: null,
 		layout: null,
+		outputType: null,
+		template: null,
 	});
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -24,6 +26,8 @@ const useFusionData = () => {
 				deployment: null,
 				arcSite: null,
 				layout: null,
+				outputType: null,
+				template: null,
 			});
 		}
 
@@ -39,6 +43,8 @@ const useFusionData = () => {
 					deployment: fusion.deployment,
 					arcSite: fusion.arcSite,
 					layout: fusion.layout,
+					outputType: fusion.outputType,
+					template: fusion.template,
 				});
 			} catch {
 				return null;

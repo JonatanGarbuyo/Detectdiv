@@ -15,13 +15,19 @@ const DevToolsApp = () => {
 					<strong>ArcSite:</strong> {data.arcSite || "-"}
 				</div>
 				<div>
-					<strong>Layout:</strong> {data.layout || "-"}
-				</div>
-				<div>
 					<strong>Deployment:</strong> {data.deployment || "-"}
 				</div>
 				<div>
+					<strong>Layout:</strong> {data.layout || "-"}
+				</div>
+				<div>
 					<strong>MxID:</strong> {data.mxId || "-"}
+				</div>
+				<div>
+					<strong>OutputType:</strong> {data.outputType || "-"}
+				</div>
+				<div>
+					<strong>Template:</strong> {data.template || "-"}
 				</div>
 			</div>
 
